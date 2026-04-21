@@ -1,0 +1,383 @@
+#### TODO Tidy them up to make sure I have them all that it is less of a mess
+
+
+## The new cost of sieving is cA*cT + p1 + cV, minimizing (1+eps)*cB
+## Equating Sieving and lin Algebra
+## Solving the polynomial system---> Not aceptable solution
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1, l2, cV, ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+##p1 + p2 + cA*ct - cB + cV with the equation
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+##Equality Sieving linear algebra
+c2 = numerator((1+eps)*cB - cA*ct - p1 - cV)
+L = (1+eps)*cB + l1*c1 + l2*c2
+eq1 = derivative(L,ct)
+eq2 = derivative(L,cV)
+eq3 = derivative(L,cB)
+eq4 = derivative(L,cA)
+I = ideal([eq1,eq2,eq3,eq4,c1,c2])
+B = I.groebner_basis()
+B[len(B)-1]
+### negative values of cB
+-----------------------------------------------------------------------------------------
+## The new cost of sieving is cA*cT + p1 + cV, minimizing the cost of linear algebra (should be equivalent to the one above)
+## Equating Sieving and lin Algebra
+## Solving the polynomial system minimizing sieving---> Not aceptable solution
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1, l2, cV, ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+##p1 + p2 + cA*ct - cB + cV with the equation
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+##Equality Sieving and linear algebra
+c2 = numerator((1+eps)*cB - cA*ct - p1 - cV)
+L = cA*ct + p1 + cV + l1*c1 + l2*c2
+eq1 = numerator(derivative(L,ct))
+eq2 = numerator(derivative(L,cV))
+eq3 = numerator(derivative(L,cB))
+eq4 = numerator(derivative(L,cA))
+I = ideal([eq1,eq2,eq3,eq4,c1,c2])
+B = I.groebner_basis()
+[b.monomials() for b in B]
+B[len(B)-1]
+### Negative solutions in cB
+
+-----------------------------------------------------------------------------------------------
+## Not assuming equality lin alg and Sieve, but assuming p1 + cV = 0
+##Minimizing (1+eps)*cB----> not aceptable solutions
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l,ct, cA, cB> = PolynomialRing(P, order='lex')
+## the new cost of sieving implies cAct + p1 + cV = cB
+p1 = -cA*(r+1)/(3*k*cB)
+cV = -p1
+p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+##p1 + p2 + cA*ct - cB + cV with the equation
+c = numerator(cA*ct + p1 + p2 + cV - cB)
+L = (1+eps)*cB + l*c
+eq1 = derivative(L,cB)
+eq2 = derivative(L,cA)
+eq3 = derivative(L,ct)
+I = ideal([eq1,eq2,eq3,c])
+B = I.groebner_basis()
+B[len(B)-1]
+------------------------------------------------------------------------------------------------------------
+
+## Minimizing cA*cT + p1 + cV, under MC and checking p1 + cv >0 and compare with (1+eps)cB
+## ----> No acceptable solutions
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1, l2, cV, ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+##p1 + p2 + cA*ct - cB + cV with the equation
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+#c2 = numerator((1+eps)*cB - cA*ct - p1 - cV)
+L = cA*ct + p1 + cV + l1*c1
+eq1 = numerator(derivative(L,ct))
+eq2 = numerator(derivative(L,cV))
+eq3 = numerator(derivative(L,cB))
+eq4 = numerator(derivative(L,cA))
+I = ideal([eq1,eq2,eq3,eq4,c1])
+B = I.groebner_basis()
+eqB(cB) = B[len(B)-1]
+### quadratic equation in cB^3 of the from x^2 + bx + c
+###Check discriminant
+cff = B[len(B)-1].coefficients()
+## leading coeff to independent term
+disc(r) = cff[1]^2 - 4*cff[2]
+#plot(disc, (r, 1,100))
+##It is positive except for r=2
+## But the discriminant is really small and b large, so the two solutions are negative -----
+Sols = solve(eqB, cB, solution_dict=True)
+Sols_eval(r) = [s[cB] for s in Sols]
+#[s.n(50) for s in Sols_eval(2)]
+eqB(r) = B[len(B)-1]
+for r in range(1,12):
+    R.<x> = PolynomialRing(RR)
+    eqcB_eval(cB) = eqB(r)
+    print(R(eqcB_eval(x)).roots())
+#no positive solutions 
+--------------------------------------------------------------------------------------------------------
+
+##### There might be repeated systems after this
+
+### Not assuming B = B'V. First assume cB > cBp + cV
+### Main equation cA*ct +p1+p2+cV = max(cB, cBp + cV) with the equation
+### Minimizie (1+eps)*cB -----> No acceptable solutions
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cV,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cB > cBp + cV
+c1 = numerator(cA*ct + p1 + p2 + cV - cB
+#L = (1+eps)*cB + l1*c1
+#derivative wrt cB is only used to solve for l1
+eq1 = derivative(c1,cA)
+eq2 = derivative(c1,ct)
+eq3 = derivative(c1,cV)
+eq4 = derivative(c1,cBp)
+I = ideal([eq1,eq2,eq3,eq4,c1])
+B = I.groebner_basis()
+B[-1]
+
+### Minimizie cA*ct -----> No acceptable solutions
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cV,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cB > cBp + cV
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+L = cA*ct + l1*c1
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cV)
+eq4 = derivative(L,cBp)
+eq5 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,eq4,eq5,c1])
+B = I.groebner_basis()
+B[-1]
+
+### Minimizie cA*ct + p1+ cV -----> No solutions, incompatible system
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cV,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cB > cBp + cV
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+L = cA*ct + p1+ cV + l1*c1
+eq1 = numerator(derivative(L,cA))
+eq2 = numerator(derivative(L,ct))
+eq3 = numerator(derivative(L,cV))
+eq4 = numerator(derivative(L,cBp))
+eq5 = numerator(derivative(L,cB))
+I = ideal([eq1,eq2,eq3,eq4,eq5,c1])
+B = I.groebner_basis()
+
+### Not assuming B = B'V. First assume cB > cBp + cV
+### Main equation cA*ct +p1+p2+cV = max(cB, cBp + cV) with the equation
+### Assume p1 + cV=0
+### Minimizie (1+eps)*cB -----> Incompatible system
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+cV = -p1
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cB > cBp + cV
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+L = (1+eps)*cB + l1*c1
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cBp)
+eq4 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3, eq4,c1])
+B = I.groebner_basis()
+len(B)
+
+### Minimizie cA*ct -----> No acceptable solutions, returns cA*cB = 0
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+cV = -p1
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cB > cBp + cV
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+L = cA*ct + l1*c1
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cBp)
+eq4 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3, eq4,c1])
+B = I.groebner_basis()
+len(B)
+B[-1]
+
+
+### Not assuming B = B'V. First assume cB > cBp + cV
+### Main equation cA*ct +p1+p2+cV = max(cB, cBp + cV) with the equation
+### Assume p1 + cV=0
+### Assume eqlin alg = sieving, (1+eps)*cB = cA*ct
+### Minimize (1+eps)*cB  ------> return cB = 0
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cBp,ct, cB> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/ct
+p1 = -cA*(r+1)/(3*k*cB)
+cV = -p1
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cB > cBp + cV
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+#c2 = numerator((1+eps)*cB - cA*ct - p1 - cV)
+L = (1+eps)*cB + l1*c1
+eq1 = derivative(L,ct)
+eq2 = derivative(L,cBp)
+eq3 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,c1])
+B = I.groebner_basis()
+B[-1]
+
+### Not assuming B = B'V. First assume cB > cBp + cV
+### Main equation cA*ct +p1+p2+cV = max(cB, cBp + cV) with the equation
+### Asume cA*ct + p1 + cV = (1+esp)*cB
+### Minimizie (1+eps)*cB -----> returns cB=0
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,l2,cV,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cB > cBp + cV
+c1 = numerator(cA*ct + p1 + p2 + cV - cB)
+c2 = numerator(cA*ct + p1 + cV - (1+eps)*cB)
+L = (1+eps)*cB + l1*c1 + l2*c2
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cV)
+eq4 = derivative(L,cBp)
+eq5 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,eq4, eq5,c1, c2])
+B = I.groebner_basis()
+B[-1]
+
+### Not assuming B = B'V. Now assume cBp + cV > cB
+### Main equation cA*ct +p1+p2+cV = max(cB, cBp + cV) with the equation
+### Minimizie (1+eps)*(cBp + cV) -----> Incompatible system
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cV,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cBp + cV > cB, so the equation is cA*ct + p1 + p2 + cV = (cBp + cV)
+c1 = numerator(cA*ct + p1 + p2 -cBp)
+L = (1+eps)*(cBp + cV) + l1*c1
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cV)
+eq4 = derivative(L,cBp)
+eq5 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,eq4, eq5,c1])
+B = I.groebner_basis()
+len(B)
+
+### Minimizie cA*ct -----> returns cA^2 = 0
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cV,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cBp + cV > cB, so the equation is cA*ct + p1 + p2 + cV = (cBp + cV)
+c1 = numerator(cA*ct + p1 + p2 -cBp)
+L = cA*ct + l1*c1
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cV)
+eq4 = derivative(L,cBp)
+eq5 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,eq4, eq5,c1])
+B = I.groebner_basis()
+B[-1]
+
+### Minimizie cA*ct+ p1 + cV -----> incompatible system
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cV,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+##We assume cBp + cV > cB, so the equation is cA*ct + p1 + p2 + cV = (cBp + cV)
+c1 = numerator(cA*ct + p1 + p2 -cBp)
+L = cA*ct+ p1 + cV + l1*c1
+eq1 = numerator(derivative(L,cA))
+eq2 = numerator(derivative(L,ct))
+eq3 = numerator(derivative(L,cV))
+eq4 = numerator(derivative(L,cBp))
+eq5 = numerator(derivative(L,cB))
+I = ideal([eq1,eq2,eq3,eq4, eq5,c1])
+B = I.groebner_basis()
+len(B)
+
+### Not assuming B = B'V. Now assume cBp + cV > cB
+### Main equation cA*ct +p1+p2+cV = max(cB, cBp + cV) with the equation
+###Assume p1 + cV = 0
+### Minimizie (1+eps)*(cBp + cV) -----> Incompatible system
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+cV = -p1
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+c1 = numerator(cA*ct + p1 + p2 -cBp)
+L = (1+eps)*(cBp + cV) + l1*c1
+eq1 = numerator(derivative(L,cA))
+eq2 = numerator(derivative(L,ct))
+eq3 = numerator(derivative(L,cBp))
+eq4 = numerator(derivative(L,cB))
+I = ideal([eq1,eq2,eq3,eq4,c1])
+B = I.groebner_basis()
+len(B)
+
+
+### Minimizie cA*ct -----> returns cA^2 = 0
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cBp,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+cV = -p1
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+c1 = numerator(cA*ct + p1 + p2 -cBp)
+L = cA*ct + l1*c1
+eq1 = numerator(derivative(L,cA))
+eq2 = numerator(derivative(L,ct))
+eq3 = numerator(derivative(L,cBp))
+eq4 = numerator(derivative(L,cB))
+I = ideal([eq1,eq2,eq3,eq4,c1])
+B = I.groebner_basis()
+B[-1]
+
+
+#### Assume cAct = (1+eps)*(cBp + cV)
+### Minimizie (1+eps)*(cBp + cV) -----> returns ct = 0
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,l2,cBp,cA,ct, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+cV = -p1
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+c1 = numerator(cA*ct + p1 + p2 -cBp)
+c2 = numerator(cA*ct - (1+eps)*(cBp + cV))
+L = (1+eps)*(cBp + cV) + l1*c1 + l2*c2
+eq1 = numerator(derivative(L,ct))
+eq2 = numerator(derivative(L,cBp))
+eq3 = numerator(derivative(L,cB))
+eq4 = numerator(derivative(L,cA))
+I = ideal([eq1,eq2,eq3,eq4,c1,c2])
+B = I.groebner_basis()
+B[-1]
+
+### Not assuming B = B'V. Now assume cBp + cV > cB
+### Main equation cA*ct +p1+p2+cV = max(cB, cBp + cV) with the equation
+###Assume cA*ct + p1 + cV = (1+eps)*(cBp + cV)
+### Minimizie (1+eps)*(cBp + cV) -----> Incompatible system
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1, l2,cBp,cV,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cBp)
+c1 = numerator(cA*ct + p1 + p2 -cBp)
+c2 = numerator(cA*ct + p1 + cV - (1+eps)*(cBp + cV))
+L = (1+eps)*(cBp + cV) + l1*c1 + l2*c2
+eq1 = numerator(derivative(L,cA))
+eq2 = numerator(derivative(L,ct))
+eq3 = numerator(derivative(L,cBp))
+eq4 = numerator(derivative(L,cB))
+eq5 = numerator(derivative(L,cV))
+I = ideal([eq1,eq2,eq3,eq4,eq5,c1, c2])
+B = I.groebner_basis()
+len(B)
