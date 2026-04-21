@@ -1,0 +1,88 @@
+### Check the other systems of solutions
+
+## minimizing (1+eps)*cB regardless  -----> No acceptable solutions
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cV,cd,cA,cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+#cV = -p1
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB-cV))
+c = numerator(p1 + p2 +cV + t*cA- cB)
+#c = numerator(p2 + eps*cB)
+##L = (1+eps)*cB + l1*c
+##derivative with respect cB is only used to solve for l1
+eq1 = derivative(c,cA)
+eq2 = derivative(c,cd)
+eq3 = derivative(c,cV)
+I = ideal([eq1,eq2,eq3,c])
+B = I.groebner_basis()
+len(B)
+[b.monomials() for b in B]
+B[-1]
+##Negative solutions of cB
+
+## minimizing t*cA regardless -----> cB=0
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cV,cd,cA,cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+#cV = -p1
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB-cV))
+c = numerator(p1 + p2 +cV + t*cA- cB)
+#c = numerator(p2 + eps*cB)
+##L = t*cA + l1*c
+##derivative with respect cA is only used to solve for l1
+eq1 = derivative(c,cB)
+eq2 = derivative(c,cd)
+eq3 = derivative(c,cV)
+I = ideal([eq1,eq2,eq3,c])
+B = I.groebner_basis()
+###No acceptable solutions
+
+## minimizing t*cA + p1 + cV regardless -----> No positive solutions
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cV,cd,cA,cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+#cV = -p1
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB-cV))
+c = numerator(p1 + p2 +cV + t*cA- cB)
+#c = numerator(p2 + eps*cB)
+L = t*cA + p1 + cV + l1*c
+eq1 = numerator(derivative(L,cA))
+eq2 = numerator(derivative(L,cB))
+eq3 = numerator(derivative(L,cd))
+eq4 = numerator(derivative(L,cV))
+I = ideal([eq1,eq2,eq3, eq4,c])
+B = I.groebner_basis()
+B[-1]
+### No positive solutions of cB
+
+
+### Check the other systems of solutions
+### Assuming tcA + p1 + cV = (1+eps)cB
+## minimizing (1+eps)*cB ----> No acceptable solutions of cB
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,l2, cV,cd,cA,cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+#cV = -p1
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB-cV))
+c1 = numerator(p1 + p2 +cV + t*cA- cB)
+c2 = numerator(t*cA + p1 + cV - (1+eps)*cB)
+#c = numerator(p2 + eps*cB)
+L = (1+eps)*cB + l1*c1 + l2*c2
+eq1 = derivative(L,cA)
+eq2 = derivative(L,cB)
+eq3 = derivative(L,cd)
+eq4 = derivative(L,cV)
+I = ideal([eq1,eq2,eq3, eq4,c1, c2])
+B = I.groebner_basis()
+B[-1]
+### No accpetable solutions of cB
+
+
