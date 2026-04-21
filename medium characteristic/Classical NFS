@@ -1,1 +1,142 @@
 
+Classical NFS
+## cV=0, classical NFS
+#Main equation p1+p2+ct*cA = cB
+## Minimize ct*cA  ----> returns values
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cB)
+c1 = numerator(p1+p2+ct*cA - cB)
+L =  ct*cA + l1*c1 
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,c1])
+B = I.groebner_basis()
+B[-1]
+
+
+## cV=0, classical NFS
+#Main equation p1+p2+ct*cA = cB
+## Minimize (1+eps)*cB  -----> negative values of cB
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cB)
+c1 = numerator(p1+p2+ct*cA - cB)
+L = (1+eps)*cB + l1*c1 
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,c1])
+B = I.groebner_basis()
+B[-1]
+
+
+----------------------------------------------------------
+
+Classical NFS situation collapses: makes sense to optimize Sieving, and then the overall complexity is not affected
+## cV=0, classical NFS
+#Main equation p1+p2+ct*cA = cB
+## Minimize ct*cA  
+
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,ct, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cB)
+c1 = numerator(p1+p2+ct*cA - cB)
+L =  ct*cA + l1*c1 
+eq1 = derivative(L,cA)
+eq2 = derivative(L,ct)
+eq3 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,c1])
+B = I.groebner_basis()
+#[b.monomials() for b in B]
+## solve cB in B[-1], and then cA and ct are linear formulas in cB
+## Solve cB in B[-1] 
+B[-1].factor()
+ct,cA,cB,r,k,eps = SR.var('ct,cA,cB,r,k,eps')
+eqcB(cB) = ((9*r + 9)*cB^3 + (-16*r - 8))
+val_cB = solve(eqcB, cB, solution_dict=True)[2][cB]
+relcAcB(cB) = B[-2]
+eqcA(cA) = relcAcB(val_cB)
+val_cA = solve(eqcA, cA, solution_dict=True)[0][cA]
+relctcB(cB) = B[-3]
+eqct(ct) = relctcB(val_cB)
+val_ct = solve(eqct, ct, solution_dict=True)[0][ct]
+param(r,k) = [val_cB, val_ct, val_cA]
+#Csieve(k) = val_ct*val_cA
+#G = Graphics()
+#for k0 in range(1,12):
+#    fun(r) = Csieve(k0)
+#    print(fun)
+#    G +=plot(fun, (r,1,12), color = random_color(), legend_label = k)
+#G.show()
+### Csieve is actually independent of k, and it is minimized for r = 1
+#CB(r) = val_cB
+#plot(CB(r), (r, 1, 12))
+##Minimized at r=1
+[mcB, mct, mcA] = param(1,1)
+CSieve = mct*mcA
+[mct*mcA, 2*mcB]
+##Actually mct*mcA= 2*mcB, meaning for all epsilon, the complexity return is mct*mcA
+CSieve
+
+
+## cV=0, classical NFS
+#Main equation p1+p2+ct*cA = cB
+## equality ln alg = sieving (1+eps)*cB = ct*cA
+## Minimize (1+eps)*cB   ----> Returns values
+
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<ct, cB> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/ct
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*cB)
+c1 = numerator(p1+p2+ct*cA - cB)
+#L =  (1+eps)*cB + l1*c1 
+#derivative wrt cB is only used to solve for l1
+eq1 = derivative(c1,ct)
+I = ideal([eq1,c1])
+B = I.groebner_basis()
+ct,cA,cB,r,k,eps = SR.var('ct,cA,cB,r,k,eps')
+relctcB(ct) = B[0]
+eqct(cB) = solve(relctcB, ct, solution_dict=True)[0][ct]
+B[-1].factor()
+relcB(cB) = (9*r*eps^2 + 9*eps^2)*cB^3 + (-8*r*eps - 8*r - 4*eps - 4)
+val_cB = solve(relcB, cB, solution_dict=True)[2][cB]
+##independent of k
+#val_cB(r) = val_cB
+#G = Graphics()
+#for r0 in range(1,12):
+#    fun(eps) = val_cB(r0)
+#    G += plot(fun, (eps, 0.2,0.8), color = random_color(), legend_label = r0)
+#G.show()
+#clearly minimized at r=1 
+val_ct = eqct(val_cB)
+param(r,k) = [val_cB, val_ct]
+[mcB, mct] = param(1,1)
+comp(eps) = (1+eps)*mcB
+##Compare with the complexity by minimizing linAlg
+plot([comp, mct, 4*(1/6)^(1/3)], (eps, 0.2, 1), legend_label = ['comp', 'ct'])
+comp(1)
+###For classical NFS the situation collapses: it only makes sense to minimize Sieving, minimizing both and keeping the equality makes the complexity explode.
+
+--------------------------------------------------------------------------------------------------------------
