@@ -1,0 +1,169 @@
+##Large épsilon
+#### Large epsilon, with all the parameters r,k,t. r is considered continuous
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cV, cd, cB> = PolynomialRing(P, order='lex')
+## A^t = B^(1+eps) --> tcA = (1+eps)*cB
+cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB-cV))
+#c = numerator(p1 + p2 +cV + t*cA- cB)
+c = numerator(p1 + p2 +cV + eps*cB)
+eq1 = derivative(c,cd)
+eq2 = derivative(c,cV)
+I = ideal([eq1,eq2,c])
+B = I.groebner_basis()
+#[b.monomials() for b in B]
+#Quadratic equation on cB^3
+relcB = B[len(B)-1]
+## check signs f x^2 - bx - c
+cff = relcB.coefficients()
+num = cff[1].numerator()
+exp, r = num.quo_rem((t-1))
+cV, cd, cB, t, k,eps = SR.var('cV, cd, cB, t, k,eps')
+exp(eps) = exp
+#plot(exp, (eps, 0, 1))
+### Hence cff[1] is negative, and cff[2] too
+relcB(cB) = relcB
+eqcB(cB) = relcB(cB^(1/3))
+cubecB = solve(eqcB, cB, solution_dict=True)[1][cB]
+### This checks that it is the right sign, and that they are minimized for t=2
+#cubecB(eps, t) = cubecB
+#G = Graphics()
+#for t in range(2,7):
+#    fun(eps) = cubecB(eps, t)
+#    s = random_color()
+#    G += plot(fun, (eps, 0,1), color=s, legend_label = t)
+#G.show()
+## Get minimized at t=2, independently of k.
+val_cB = cubecB^(1/3)
+relcdcB(cd,cB) = B[len(B)-2]
+eqcd(cd) = relcdcB(cd, val_cB)
+val_cd = solve(eqcd, cd, solution_dict=True)[0][cd]
+#B[0].monomials() only in terms of cB
+relcVcB(cV, cB) = B[0]
+eqcV(cV) = relcVcB(cV, val_cB)
+val_cV = solve(eqcV, cV, solution_dict=True)[0][cV]
+param(t,k) = [val_cB, val_cd, val_cV]
+###the get minimized at t=2 and irrelevant k, so set k=1. We did check at the end if different k change p1 + cV but it is independent of k
+[min_cB, min_cd, min_cV] = param(2,1)
+### the rest of the parameters and check p1 +cV
+cA(cB, t,eps) = cA
+min_cA = cA(min_cB, 2,eps)
+p1(cd,eps, k, t) = p1
+min_p1 = p1(min_cd, eps, 1,2)
+check = min_p1 +min_cV
+#plot([(1+eps)*min_cB, min_cB, min_cV, min_cd,check], (eps, 0,1), legend_label = ['Complexity: (1+eps)*cB', 'cB', 'cV', 'cr', 'p1 + cV'])
+G1 = plot([(1+eps)*min_cB, min_cB, min_cV, min_cd], (eps, 0,1), legend_label = ['Complexity: (1+eps)*cB', 'cB', 'cV', 'cr'])
+G2 = plot(check, (eps, 0,1), color= 'black', linestyle = 'dashed', legend_label = 'p1 + cV')
+G1.show()
+G2.show()
+#Sanity check at eps=1
+#min_cB(eps) = min_cB
+#(2*min_cB(1) - ((92 + 26*sqrt(13))/27)^(1/3))
+check(eps) = check
+find_root(check, 0.7,0.8)
+
+-----------------------------------------------------------------------------------------------------------------------
+## For Small épsilon
+## Imposing p1 + cV = 0 and minimizing 2*cA, then comparing with (1+eps)*cB
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cd, cA, cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+cV = -p1
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB-cV))
+c = numerator(p1 + p2 +cV + t*cA- cB)
+#c = numerator(p1 + p2 +cV + eps*cB)
+#L = t*cA + lc, the derivative wrt cA is only used for solving for lambda
+eq1 = derivative(c,cB)
+eq2 = derivative(c,cd)
+I = ideal([eq1,eq2,c])
+B = I.groebner_basis()
+cd, cA, cB,t,k,eps = SR.var('cd, cA, cB,t,k,eps')
+eqcB(cB) = B[-1]
+val_cB = solve(eqcB, cB, solution_dict=True)[2][cB]
+#plot(valcB, (t, 2, 100))
+#complexity minimized at t=2
+relcAcB(cA,cB) = B[-2]
+eqcA(cA) = relcAcB(cA, val_cB)
+val_cA = solve(eqcA, cA, solution_dict=True)[0][cA]
+relcdcB(cd, cB) = B[0]
+eqcd(cd) = relcdcB(cd, val_cB)
+val_cd = solve(eqcd, cd, solution_dict=True)[0][cd]
+param(t,k) = [val_cB, val_cA, val_cd]
+[min_cB, min_cA, min_cd] = param(2,1)
+#p1(cd,cA,k,cB) = p1
+#min_cV = -p1(min_cd, min_cA, 1, min_cB)
+## necessary to have cV < cB
+##(min_cB - min_cV).n(40) is poitive
+CSieve = 2*min_cA
+CLinAlg = (1+eps)*min_cB
+#plot([CSieve, CLinAlg], (eps, 0,1))
+##Solve (1+eps)cB= 2cA
+valid_eps = 2*min_cA/min_cB - 1
+#valid_eps is 2/3
+comp(eps) = max_symbolic(CSieve, CLinAlg)
+
+-----------------------------------------------------------------------------------------------------------
+
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+
+#For médium épsilon 
+## Imposing p1 + cV = 0 and 2*cA = (1+eps)*cB and MC
+##Minimizing (1+eps)*cB
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cd,cB> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+cV = -p1
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB-cV))
+#c = numerator(p1 + p2 +cV + t*cA- cB)
+c = numerator(p2 + eps*cB)
+#L = (1+eps)*cB + lc, the derivative wrt cB is only used for solving for lambda
+eq1 = derivative(c,cd)
+I = ideal([eq1,c])
+B = I.groebner_basis()
+cd, cB,t,k,eps = SR.var('cd, cB,t,k,eps')
+relB(cB) = B[len(B)-1]
+##cubic quation on cB
+val_cB = solve(relB, cB, solution_dict=True)[2][cB]
+#G = Graphics()
+#for t in range(2,10):
+#    G += plot(val_cB(t), (eps,0.5,1), color = random_color(), legend_label=t)
+#G.show()
+###Minimized for t=2
+relcd(cd,cB) = B[0]
+eqcd(cd) = relcd(cd, val_cB)
+val_cd = solve(eqcd, cd, solution_dict=True)[0][cd]
+###Minimized at t=2, and can set k=1 as it does not affect the complexity
+param(t,k) = [val_cB, val_cd]
+[min_cB, min_cd] = param(2,1)
+comp = (1+eps)*min_cB
+## Rest of the parameters if needed
+cA(cB,t) =cA
+min_cA = cA(min_cB,2)
+cV(eps, t,k,cd) = cV
+min_cV = cV(eps, 2,1, min_cd)
+param(eps) = [comp, min_cB, min_cd, min_cA, min_cV]
+#plot([comp, min_cB, min_cd, min_cA, min_cV], (eps, 0.2,0.8), legend_label=['comp', 'cB', 'cd', 'cA', 'cV'])
+
+-----------------------------------------------------------------------------------------------------------------------------
