@@ -87,6 +87,53 @@ def compute_eps(r,k):
 
 ##Only valid for large epsilon 0.7071067811865223. 
 
+---------------------------------------------------------------------------------------------------------
+#Large epsilon, check the sign of the coefficients of the polynomial of cB^3
+### Complexity analysis with épsilon assuming equality lin alg and sieving
+### including a check that the quadratic equation on c_b^3 has the middle term negative
+#Sage code for medium characteristic alg A assuming LinAlg and CSieve
+#the minimum is the predicted one
+R.<r,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cV, ct, cB> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/ct
+p1 = -cA*(r+1)/(3*k*cB)
+p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+##p1 + p2 + cA*ct - cB + cV with the equation
+c = numerator(p1 + p2 + eps*cB + cV)
+eq1 = derivative(c,ct)
+eq2 = derivative(c,cV)
+I = ideal([eq1,eq2,c])
+B = I.groebner_basis()
+eqcB(cB) = B[len(B)-1]
+#is a quadratic equation on cB^3, consider the positive solution and then the third root
+quadcB= eqcB(cB^(1/3)).full_simplify()
+#linear equation for ct and cV in terms of cB
+rel_ctcB(ct) = B[len(B) - 2]
+ct_val = solve(rel_ctcB, ct, solution_dict=True)[0][ct]
+rel_cVcB(cV) = B[0]
+cV_val = solve(rel_cVcB, cV, solution_dict=True)[0][cV]
+rels(r,k,eps) = [eqcB, ct_val, cV_val]
+
+cff(r,eps) = (B[len(B)-1]).coefficients()[1]
+
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+
+def plot_middle_term_negative():
+    G = Graphics()
+    for r in range(1,12):
+        s = random_color()
+        fun(eps) = cff(r,eps)
+        G += plot(fun, (eps, 0,1), color = s, legend_label=r)
+    return G.show()
+
+plot_middle_term_negative()
+#Checks that the middle term is always negative
+
 -----------------------------------------------------------------------------------------------------------------
 
 ##Small epsilon
