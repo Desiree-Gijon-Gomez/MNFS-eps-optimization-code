@@ -1,0 +1,90 @@
+Check classical NFS
+## cV=0, classical NFS
+#Main equation p1+p2+t*cA = cB
+## Minimize (1+eps)*cB-----> No acceptable solutions
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,cd,cA,cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB))
+c1 = numerator(p1 + p2 + t*cA- cB)
+L =  (1+eps)*cB + l1*c1 
+eq1 = derivative(L,cA)
+eq2 = derivative(L,cd)
+eq3 = derivative(L,cB)
+I = ideal([eq1,eq2,eq3,c1])
+B = I.groebner_basis()
+B[-1]
+##no solutions
+-------------------------------------------------------
+
+## cV=0, classical NFS
+#Main equation p1+p2+t*cA = cB
+## Minimize (1+eps)*cB-----> No acceptable solutions
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cd,cB,cA> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB))
+c1 = numerator(p1 + p2 + t*cA- cB)
+#L =  t*cA + l1*c1 
+###derivative wrt cA is only used to solve for l1, so do not need to include it
+eq1 = derivative(c1,cd)
+eq2 = derivative(c1,cB)
+I = ideal([eq1,eq2,c1])
+B = I.groebner_basis()
+#[b.monomials() for b in B]
+#Solve for cA in a cubic equation, and then plug it in the linear equations for cB and cd
+relcA(cA) = B[-1]
+relcBcA(cB) = B[-2]
+eqcB(cA) = solve(relcBcA, cB, solution_dict=True)[0][cB]
+##For cB = (t/2)*cA, or 2cB = t*cA, so for eps=1 have equality sieving and lin algebra, and for smaller epsilon Sieving dominates
+###cd is clearly well defined, no need to solve for it
+val_cA = solve(relcA, cA, solution_dict=True)[2][cA]
+#val_cA(t) = t*val_cA
+#plot(t*val_cA, (t,2, 100))
+#minimized at t=2
+val_cB = eqcB(val_cA)
+param(t) = [val_cB, t*val_cA]
+[mcB, mcLA] = param(2)
+[2*mcB, mcLA]
+### equality at eps=1, for any other LA dominates
+
+## cV=0, classical NFS
+#Main equation p1+p2+ct*cA = cB
+## equality ln alg = sieving (1+eps)*cB = t*cA
+## Minimize (1+eps)*cB  
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+
+R.<t,k,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cd,cB> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/t
+p1 = -cd*cA/(3*k*cB)
+p2 = -(cd*cA/k + (t-1)*k/cd)/(3*(cB))
+c1 = numerator(p1 + p2 + t*cA- cB)
+#L =  (1+eps)*cB + l1*c1 
+###derivative wrt cB is only used to solve for l1, so do not need to include it
+eq1 = derivative(c1,cd)
+I = ideal([eq1,c1])
+B = I.groebner_basis()
+eqcB(cB) = B[-1]
+##cd clearly well defined for B[0], no need to compute it for the complexity analysis
+val_cB(t) = solve(eqcB, cB, solution_dict=True)[2][cB]
+G = Graphics()
+for t0 in range(2,12):
+    fun(eps) = (1+eps)*val_cB(t0)
+    G += plot(fun, (eps,0.2,1), color = random_color(), legend_label = t0)
+#G.show()
+#clearly minimized at t = 2
+comp(eps) = (1+eps)*val_cB(2)
+##Complexity buy only minimizing lin algebra is 4*(1/9)^(1/3)
+[comp(1), 4*(1/9)^(1/3)]
+## At the rest, equality is the worse strategy
+
