@@ -1,5 +1,5 @@
 
-Classical NFS
+##Classical NFS
 ## cV=0, classical NFS
 #Main equation p1+p2+ct*cA = cB
 ## Minimize ct*cA  ----> returns values
