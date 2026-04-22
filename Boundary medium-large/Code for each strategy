@@ -1,0 +1,86 @@
+### All the checks in the case of small epsilon, we will remove them when plotting so that the plotting goes faster
+#### Minimizing Sieving. Has all the checks first, then we remove them. Also allows k to increase, then we will optimize for small and large cp
+R.<r,k,t,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+### Set p1 + cV = 0 and minimize sieving t*cA
+M.<cB, cA,cp> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB*cp)
+cV = -p1
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+c = numerator(p1 + p2 + cV +t*cA - cB)
+#L = t*cA + l1*c, the derivative of cA is only used to solve for l1
+eq1 = derivative(c,cB)
+I = ideal([eq1,c])
+B = I.groebner_basis()
+### well defined as long as cp \not= 0
+eqcA = B[-1]
+[b.monomials() for b in B]
+##B[-2].polynomial(cB)
+###This polynomial cannot be used if cp^3 = (81*r^3 + 234*r^2 + 225*r + 72)/(k^3*t^3 + k^3*t^2) = 9*(r+1)^2*(9*r+8)/(k^3*t^2*(t+1))
+relcBcA(cB) = B[-2]
+valcB = solve(relcBcA, cB, solution_dict=True)[0][cB]
+## return cV too, so can compare cB > cV in the end
+#valcV(r,k,cA,cB,cp) = cV
+rels(r,k,t,cp) = [eqcA, valcB, cV]
+
+def MNFSAComplexity_at_RKTcp(r,k,t,cp):
+    [eqcA_eval, valcB_eval, valcV_eval] = rels(r,k,t,cp) 
+    pol(cA) = eqcA_eval
+    valcB(cA) = valcB_eval
+    valcV(cA, cB) = valcV_eval
+    R1.<x> = PolynomialRing(RR)
+    rootsA = (R1(pol(x))).roots()
+    ### iterate on all positive roots of and produce the corresponding value of cB
+    ### check that it is a correct value for the complexity: compute cV and compare with cB
+    Cmin = 1e6
+    #Return the rest of continuous parameters if needed
+    cont = [0,0,0]
+    for (valcA,m) in rootsA:
+        if valcA > 0 and t*valcA < Cmin: ## we compute the rest of continuous parameters and return the new solution if all make sense
+            valcB = valcB(valcA)
+            if valcB >0:
+                valcV = valcV(valcA, valcB) ##it is positive if both cA and cB are positive
+                if valcB > valcV:
+                    Cmin = t*valcA
+                    cont = [valcA, valcB, valcV]
+                    ### epsilon when LinAlg dominates
+                    ###Clinalg = (1+esp)*cB--->eps = ClinAlg/cB - 1
+    #eps_valid = Cmin/valcB - 1
+    return (Cmin, cont)
+
+#MNFSAComplexity_at_RKTcp(1,1,2,2.17827)
+                
+
+def MNFSAComplexity_at_cp(cp, bdrk, bdt):
+    Cmin = 1e6
+    [t_best, r_best, k_best] = [0,0,0]
+    cont_best = [0,0,0] ### the rest of the continuous parameters of the algorithm
+    for t in range(2, bdt + 1):
+        for r in range(1,bdrk + 1):
+            for k in range(1, r+1):
+                (C, cont) = MNFSAComplexity_at_RKTcp(r,k,t,cp)
+                if C < Cmin:
+                    Cmin = C
+                    cont_best = cont
+                    [t_best, r_best, k_best] = [t,r,k]
+    eps_valid = Cmin/cont_best[1]- 1
+    return (Cmin, cont_best, [t_best, r_best, k_best], eps_valid)
+
+
+#MNFSAComplexity_at_cp(2.9462736, 12, 6)
+def plot_comp(a,b,numcp, bdrk, bdt):
+    delta = (b-a)/numcp
+    rancp = srange(a,b,delta)
+    liscomp = []
+    for cp in rancp:
+        (ClinAlg, cont_best, [t_best, r_best, k_best], eps_valid) =  MNFSAComplexity_at_cp(cp, bdrk, bdt)
+        #print(cp, t_best, r_best, k_best, eps_valid)
+        print(t_best, r_best, k_best)
+        liscomp += [(cp, ClinAlg)]
+    return plot(points(liscomp))
+
+### Remark if bdt is not large enough, it will try to minimize letting r=k large, but that is a fluke, because the "right" t is not available
+num = 50
+a  = 0.3
+b = 1
+plot_comp(a,b,num, 12, 12)
