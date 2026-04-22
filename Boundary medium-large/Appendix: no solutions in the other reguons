@@ -30,3 +30,80 @@ I = ideal([eq1, eq2,c])
 B = I.groebner_basis()
 B
 
+
+--------------------------------------------------------------------------------------------------------------------------------------
+### Assuming 0 = p1 + cV
+## Minimize (1+eps)*cB
+#### Returns values, but the dominant cost is t*cA, not (1+eps)*cB. It looks simmilar to the graph, but the complexities are large, so it does not affect the overall analysis
+#### minimize (1+eps)*cB under the assumption that t*cA < (1+eps)*cB, but this is not true for any value of eps (we checked that in the end), so not valid solutions
+### In any case, it does return reasonable values
+### Bad strategy, compared to minimize lin algebra 
+R.<t,k,r> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cA, cB,cp> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB*cp)
+## p1 + cV = 0
+cV = -p1
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+c = numerator(p1 + p2 + cV +t*cA - cB)
+#L = (1+eps)*cB + l1*c, the derivative of cB is only used to solve for l1
+eq1 = derivative(c,cA)
+I = ideal([eq1, c])
+B = I.groebner_basis()
+eqcB = B[-1]
+relcBcA(cA) = B[0]
+valcA = solve(relcBcA, cA, solution_dict=True)[0][cA]
+rels(cp, t, k, r) = [eqcB, valcA, cV]
+### Can't see that easily if there is solutions, so we try with random values
+
+def Complexity_at_cp_t_k_r(cp0, t0, k0, r0):
+    rels_eval = rels(cp0, t0, k0, r0)
+    polcB(cB) = rels_eval[0]
+    R1.<x> = RR[]
+    rooB = R1(polcB(x)).roots()
+    cBmin = 1e6
+    cAmin = 1e6
+    for (val_cB, i) in rooB:
+        if val_cB > 0 and val_cB < cBmin:
+            rel_cA(cB) = rels_eval[1]
+            val_cA = rel_cA(val_cB)
+            ### check if c_B > c_V
+            relcV(cA,cB) = rels_eval[2]
+            val_cV = relcV(val_cA, val_cB)
+            if val_cB > val_cV : 
+                cBmin = val_cB
+                cAmin = val_cA
+    return (cBmin, t0*cAmin)
+
+##Complexity_at_cp_t_k_r(0.276823682, 12,1,1)
+def Complexity_at_cp(cp0, bdrk, bdt,eps):
+    Cmin = 1e6
+    [t_best, r_best, k_best] = [0,0,0]
+    for t0 in range(2, bdt + 1):
+        for r0 in range(1,bdrk + 1):
+            for k0 in range(1, r0+1):
+                (cB, CLA) = Complexity_at_cp_t_k_r(cp0, t0, k0, r0)
+                C = max_symbolic((1+eps)*cB, CLA)
+                if C < Cmin:
+                    Cmin = C
+                    [t_best, r_best, k_best] = [t0,r0,k0]
+    return (Cmin, [t_best, r_best, k_best])
+
+def plot_comp(a,b,numcp, bdrk, bdt, eps):
+    delta = (b-a)/numcp
+    rancp = srange(a,b,delta)
+    liscomp = []
+    for cp0 in rancp:
+        (Cmin, [t_best, r_best, k_best]) =  Complexity_at_cp(cp0, bdrk, bdt,eps)
+        print((Cmin, t_best, r_best, k_best))
+        liscomp += [(cp0, Cmin)]
+    return points(liscomp)
+
+num = 50
+a = 0.3
+b = 7
+
+G = plot_comp(a,b,num, 7,7,1)
+G += plot_comp(a,b,num, 7,7,0)
+G.show()
+
