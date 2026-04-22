@@ -29,7 +29,90 @@ eq2 = derivative(c,cV)
 I = ideal([eq1, eq2,c])
 B = I.groebner_basis()
 B
+------------------------------------------------------------------------------------------------------------------------------------
+### Assuming 0 < p1 + cV 
+### Minimizing sieving = t*cA + p1 + cV
+### Sage cannot handle over t,k,r. Specializing to k=r=1 it can, and we do not have acceptable solutions of cA
+#R.<t,k,r> = PolynomialRing(QQ)
+R.<t,cp> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1, cV, cB, cA> = PolynomialRing(P, order='lex')
+#t=2
+k=1
+r=1
+p1 = -cA*(r+1)/(3*k*cB*cp)
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+c = numerator(p1 + p2 + cV +t*cA - cB)
+L = t*cA + p1 + cV + l1*c
+#L = t*cA + p1 + cV + l1*c, 
+eq1 = numerator(derivative(L,cB))
+eq2 = numerator(derivative(L,cA))
+eq3 = numerator(derivative(L,cV))
+I = ideal([eq1,eq2, eq3, c])
+B = I.groebner_basis()
+B[-1]
+#### No positive solution in cA 
 
+### Can do for all the parameters t,k,r with more work
+### Assuming 0 < p1 + cV 
+### Minimizing sieving = t*cA + p1 + cV ----> No acceptable solution for cA
+#R.<t,k,r> = PolynomialRing(QQ)
+R.<t,k,r,cp> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1, cV, cB, cA> = PolynomialRing(P, order='lex')
+#t=2
+#k=1
+#r=1
+p1 = -cA*(r+1)/(3*k*cB*cp)
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+c = numerator(p1 + p2 + cV +t*cA - cB)
+L = t*cA + p1 + cV + l1*c
+#L = t*cA + p1 + cV + l1*c, 
+eq1 = numerator(derivative(L,cB))
+eq2 = numerator(derivative(L,cA))
+eq3 = numerator(derivative(L,cV))
+I = ideal([eq1,eq2, eq3, c])
+B = I.groebner_basis()
+### check that the coefficients of B[-1] are all positive ----> no positive solution for cA
+cff = B[-1].coefficients()
+num = cff[1].numerator()
+num.quo_rem(4*cp^2*(t-1))
+### 3*t^3*k^5*r*cp^3 + 3*t^3*k^5*cp^3 - 3*t^2*k^5*r*cp^3 - 3*t^2*k^5*cp^3 + k^2*r^3 + 2*k^2*r^2 + k^2*r
+## polynomial on t-1
+(3*t^3*k^5*r*cp^3 - 3*t^2*k^5*r*cp^3).quo_rem(t-1)
+(3*t^3*k^5*cp^3 - 3*t^2*k^5*cp^3).quo_rem(t-1)
+##cff[1] 
+den = cff[1].denominator()
+#9*t^6*k^6*cp^6 - 18*t^5*k^6*cp^6 + 9*t^4*k^6*cp^6 + 12*t^3*k^3*r^3*cp^3 + 18*t^3*k^3*r^2*cp^3 - 12*t^2*k^3*r^3*cp^3 + 6*t^3*k^3*r*cp^3 - 18*t^2*k^3*r^2*cp^3 - 6*t^2*k^3*r*cp^3 + r^4 + 2*r^3 + r^2
+(9*t^6*k^6*cp^6 - 18*t^5*k^6*cp^6).quo_rem(t-2)
+(12*t^3*k^3*r^3*cp^3 - 12*t^2*k^3*r^3*cp^3).quo_rem(t-1) 
+(6*t^3*k^3*r*cp^3- 6*t^2*k^3*r*cp^3).quo_rem(t-1)
+### cff[1] is positive
+cff[2].denominator() - cff[1].denominator()
+num = cff[2].numerator()
+num.quo_rem((t-1)^2)
+### cff[2] is positive
+
+---------------------------------------------------------------------------------------------------------------
+
+### Assuming 0 < p1 + cV 
+### Assumin equality lin algebra and sieving, so t*cA + p1 + cV = (1+eps)*cB -----> Incompatible system
+R.<t,k,r,eps,cp> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<l1,l2, cV, cA, cB> = PolynomialRing(P, order='lex')
+p1 = -cA*(r+1)/(3*k*cB*cp)
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+### p1 + p2 + cV + t*cA - cB
+c1 = numerator(p2 + eps*cB)
+c2 = numerator(t*cA + p1 + cV - (1+eps)*cB)
+L = (1+eps)*cB + l1*c1 + l2*c2
+eq1 = numerator(derivative(L,cB))
+eq2 = numerator(derivative(L,cA))
+eq3 = numerator(derivative(L,cV))
+I = ideal([eq1,eq2, eq3, c1, c2])
+B = I.groebner_basis()
+[b.monomials() for b in B]
+### Incompatible system
 
 --------------------------------------------------------------------------------------------------------------------------------------
 ### Assuming 0 = p1 + cV
