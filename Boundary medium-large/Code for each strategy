@@ -1,3 +1,223 @@
+### Large epsilon
+### For small values of cp, there are two positive solutions for the quadratic equation, but the smallest is not valid because c_B < c_V
+### Can't prove rigurously, so write two codes: one that prescribed the solution of c_B with the formula and the other that checks both solutions of eqcB
+## Checking in points if the actual solutions is the prescribed one
+## It is the prescribed one
+R.<r,k, t,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cV, cB,cp> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/t
+p1 = -cA*(r+1)/(3*k*cB*cp)
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+c = numerator(p1 + p2 + eps*cB + cV)
+eq1 = derivative(c,cV)
+I = ideal([eq1,c])
+B = I.groebner_basis()
+### quadratic equation for cB in terms of cp and the other parm
+### always work as long as cp \not=0
+eqB = B[len(B)-1]
+#eqB.discriminant(cB)
+### is always positive
+### quadratic equation of the form ax^2 - bx + c =0, has always at least a positive solution, the other is positive and smaller if c>0
+## Do it first checking both solutions and then always assigning the first 
+relV(cV) = B[0]
+eqV = solve(relV, cV, solution_dict=True)[0][cV]
+rels(t,r,k,eps,cp) = [eqB, eqV]
+
+def MNFS_AComplexity_at_tRKeps(t,r,k,eps,cp):
+    rels_eval = rels(t,r,k,eps,cp)
+    R1.<x> = PolynomialRing(RR)
+    polB(cB) = rels_eval[0] #see them as a function of cB
+    todasCBsols = R1(polB(x)).roots()
+    rooCB = []
+    for val_cB in todasCBsols:
+        if val_cB[0] > 0: rooCB += [val_cB[0]]
+    # should stop if no solutions of CB but I don't know how to make Sage get out 
+    Cmin = 1e6
+    for val_cB in rooCB:
+        rel_V(cB) = rels_eval[1] #as a function of cB
+        val_cV = rel_V(val_cB)
+        if val_cV >0 and val_cB > val_cV:
+            if (1+eps)*val_cB < Cmin: Cmin = (1+eps)*val_cB
+    return Cmin
+
+##Minimize everything
+rant = range(2,5)
+bdrk = 12
+def MNFS_AComplexity(eps,cp):
+    t_best = 0
+    r_best = 0
+    k_best = 0
+    Cmin = 1e6
+    for r in range(1,bdrk):
+        for k in range(1,r+1):
+            for t in rant:
+                C = MNFS_AComplexity_at_tRKeps(t,r,k,eps,cp)
+                if C < Cmin:
+                    t_best = t
+                    r_best = r
+                    k_best = k
+                    Cmin = C
+    return [Cmin, t_best, r_best, k_best]
+
+def plot_complexity_total(eps,color,ranp):
+    lis = []
+    for cp in ranp:
+        C = MNFS_AComplexity(eps,cp)
+        print(cp,C)
+        if C[1]>0:
+            lis += [(cp, C[0])]
+    return plot(points(lis, color = color, legend_label = eps))
+
+
+##Comparing with prescribing the solution
+eqB(cB) = B[len(B)-1]
+sol = solve(eqB, cB, solution_dict=True)[1][cB]
+comp(t,r,k,eps,cp) = (1+eps)*sol
+def MNFS_AComplexityPres(eps,cp):
+    t_best = 0
+    r_best = 0
+    k_best = 0
+    Cmin = 1e6
+    for r in range(1,bdrk):
+        for k in range(1,r+1):
+            for t in rant:
+                C = comp(t,r,k,eps,cp)
+                if C < Cmin:
+                    t_best = t
+                    r_best = r
+                    k_best = k
+                    Cmin = C
+    return [Cmin, t_best, r_best, k_best]
+
+def compare_compl(eps,ranp):
+    lis = []
+    for cp in ranp:
+        C1 = MNFS_AComplexity(eps,cp)
+        C2 = MNFS_AComplexityPres(eps,cp)
+        print(C1[0] - C2[0])
+    return print(finish)
+
+delta(a,b,num) = (b-a)/num
+num = 150 #number of points
+#ranp = srange(5.2, 10, delta(5.2,10,num))
+#ranp = srange(1, 10, delta(1,10,num))
+ranp = srange(0.001,20, delta(0.001,20,num))
+#compare_compl(1,ranp)
+## sanity check because for eps=1 is true
+compare_compl(0,ranp)
+
+
+------------------------------------------------------------------------------------------------------------------------------
+##18.02
+#Sage code for boundary 2/3 alg A assuming LinAlg and CSieve
+## Asuming cost of LinAlg to be (B)^(1 + eps)
+## Checking in points if the actual solutions is the prescribed one
+## It is the prescribed one
+R.<r,k, t,eps> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cV, cB,cp> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/t
+p1 = -cA*(r+1)/(3*k*cB*cp)
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+c = numerator(p1 + p2 + eps*cB + cV)
+eq1 = derivative(c,cV)
+I = ideal([eq1,c])
+B = I.groebner_basis()
+### quadratic equation for cB in terms of cp and the other parm
+### always work as long as cp \not=0
+## Prescribed the positive solution
+eqB(cB) = B[len(B)-1]
+sol = solve(eqB, cB, solution_dict=True)[1][cB]
+## cV if needed
+#relV(cV) = B[0]
+#eqV = solve(relV, cV, solution_dict=True)[0][cV]
+comp(t,r,k,eps,cp) = (1+eps)*sol
+comp(t,r,k,eps,cp).numerator()
+#eps*r^2 + 2*eps*r + 3*r^2 + eps + 4*r + 2*sqrt(3*cp^3*k^3*r*t^3 - 3*cp^3*k^3*r*t^2 + 3*cp^3*k^3*t^3 - 3*cp^3*k^3*t^2 + eps*r^4 + 3*eps*r^3 + 2*r^4 + 3*eps*r^2 + 5*r^3 + eps*r + 4*r^2 + r) + 1
+sq(t,r,k,eps,cp) = r*((eps + 2)*r + (eps + 1))/(9*k^2*cp^2*t^2) + k*cp*(t-1)/(3*(r+1))
+mycomp(t,r,k,eps,cp) = ((r+1)*eps + 3*r+1)/(3*k*cp*t) + 2*sqrt(sq)
+
+#Code for polynomial division
+P.<k,r,cp,t,eps> = PolynomialRing(QQ)
+exp = 3*cp^3*k^3*r*t^3 - 3*cp^3*k^3*r*t^2 + 3*cp^3*k^3*t^3 - 3*cp^3*k^3*t^2 + eps*r^4 + 3*eps*r^3 + 2*r^4 + 3*eps*r^2 + 5*r^3 + eps*r + 4*r^2 + r
+q,res = P(exp).quo_rem((r+1)^2)
+res.quo_rem(cp^3*t^2*k^3*(t-1))
+exp2 = eps*r^2 + 2*eps*r + 3*r^2 + eps + 4*r + 1
+exp2.quo_rem(r+1)
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+### Middle epsilon situation, it does simplify a lot
+R.<r,k,t,eps, cp> = PolynomialRing(QQ)
+P = R.fraction_field() 
+### Set p1 + cV = 0 and t*cA = (1+esp)*cB
+M.<cB> = PolynomialRing(P, order='lex')
+cA = (1+eps)*cB/t
+p1 = -cA*(r+1)/(3*k*cB*cp)
+cV = -p1
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*(cB - cV))
+#c = numerator(p1 + p2 + cV +t*cA - cB)
+c =  numerator(p2 +eps*cB)
+#L = (1+esp)*cB + l1*c, the derivative of cB is only used to solve for l1
+#eq1 = derivative(c,cB)
+I = ideal([c])
+B = I.groebner_basis()
+eqcB = B[0]
+###quadratic equation of the form x^2 - bx - c with b c >0, hence the only positive solution is b/2 + sqrt(disc)/2
+cff = eqcB.coefficients()
+cff
+solcB = (-cff[1] + sqrt(cff[1]^2 - 4*cff[0]))/2
+
+### To check the formula
+P.<k,r,cp,t, eps> = PolynomialRing(QQ)
+cff = [(-k*t*cp + k*cp)/(3*r*eps + 3*eps),
+ (-r*eps^2 - 2*r*eps - eps^2 - r - eps)/(3*k*t*eps*cp),
+ 1]
+num = cff[1].numerator()
+num.quo_rem(-(eps+1))
+mycff1 = -(eps+1)*((r+1)*eps +r)/(3*k*t*eps*cp)
+cff[1] - mycff1
+
+
+###Formula for complexity to use directly later
+cff = [(-k*t*cp + k*cp)/(3*r*eps + 3*eps), (-r*eps^2 - 2*r*eps - eps^2 - r - eps)/(3*k*t*eps*cp), 1]
+solcB = (-cff[1] + sqrt(cff[1]^2 - 4*cff[0]))/2
+comp = (1+esp)*solcB
+
+
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+var('r,k,t,x,eps')
+##x = ktcp/(r+1)
+cp = (r+1)*x/(k*t)
+cff = [(-k*t*cp + k*cp)/(3*r*eps + 3*eps), (-r*eps^2 - 2*r*eps - eps^2 - r - eps)/(3*k*t*eps*cp), 1]
+solcB = (-cff[1] + sqrt(cff[1]^2 - 4*cff[0]))/2
+comp(r,k,t,eps,x) = (1+eps)*solcB
+
+G = Graphics()
+k=1
+for r in range(1,5):
+    for t in range(2,5):
+        eps = 0.7
+        fun(x) = comp(r,k,t,eps,x)
+        G += plot(fun, (x, 0.8, 3), color = random_color(), legend_label = (r,t))
+#G.show()
+
+###Plot minimum complexity
+def minimum_complexity(eps):
+    fun(x) = comp(1,1,2,eps,x)
+    (minima, coord) = find_local_minimum(fun, 0.8,2)
+    return minima
+
+plot(minimum_complexity, (eps, 0.3, 1))
+find_local_minimum(minimum_complexity, 0.5,0.7)
+
+-----------------------------------------------------------------------------------------------------------------------
+
 ### All the checks in the case of small epsilon, we will remove them when plotting so that the plotting goes faster
 #### Minimizing Sieving. Has all the checks first, then we remove them. Also allows k to increase, then we will optimize for small and large cp
 R.<r,k,t,eps> = PolynomialRing(QQ)
