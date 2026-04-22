@@ -109,7 +109,7 @@ compare_compl(0,ranp)
 
 
 ------------------------------------------------------------------------------------------------------------------------------
-##18.02
+
 #Sage code for boundary 2/3 alg A assuming LinAlg and CSieve
 ## Asuming cost of LinAlg to be (B)^(1 + eps)
 ## Checking in points if the actual solutions is the prescribed one
@@ -134,17 +134,131 @@ sol = solve(eqB, cB, solution_dict=True)[1][cB]
 #eqV = solve(relV, cV, solution_dict=True)[0][cV]
 comp(t,r,k,eps,cp) = (1+eps)*sol
 comp(t,r,k,eps,cp).numerator()
+### denominator 3*(k*r + k)*cp*t
 #eps*r^2 + 2*eps*r + 3*r^2 + eps + 4*r + 2*sqrt(3*cp^3*k^3*r*t^3 - 3*cp^3*k^3*r*t^2 + 3*cp^3*k^3*t^3 - 3*cp^3*k^3*t^2 + eps*r^4 + 3*eps*r^3 + 2*r^4 + 3*eps*r^2 + 5*r^3 + eps*r + 4*r^2 + r) + 1
 sq(t,r,k,eps,cp) = r*((eps + 2)*r + (eps + 1))/(9*k^2*cp^2*t^2) + k*cp*(t-1)/(3*(r+1))
 mycomp(t,r,k,eps,cp) = ((r+1)*eps + 3*r+1)/(3*k*cp*t) + 2*sqrt(sq)
 
-#Code for polynomial division
+------------------------------------------------------------------------------------------------------------------------------------
+##Formula derived like this
 P.<k,r,cp,t,eps> = PolynomialRing(QQ)
-exp = 3*cp^3*k^3*r*t^3 - 3*cp^3*k^3*r*t^2 + 3*cp^3*k^3*t^3 - 3*cp^3*k^3*t^2 + eps*r^4 + 3*eps*r^3 + 2*r^4 + 3*eps*r^2 + 5*r^3 + eps*r + 4*r^2 + r
-q,res = P(exp).quo_rem((r+1)^2)
-res.quo_rem(cp^3*t^2*k^3*(t-1))
-exp2 = eps*r^2 + 2*eps*r + 3*r^2 + eps + 4*r + 1
-exp2.quo_rem(r+1)
+#eps*r^2 + 2*eps*r + 3*r^2 + eps + 4*r + 
+#2*sqrt(3*cp^3*k^3*r*t^3 - 3*cp^3*k^3*r*t^2 + 3*cp^3*k^3*t^3 - 3*cp^3*k^3*t^2 + eps*r^4 + 3*eps*r^3 + 2*r^4 + 3*eps*r^2 + 5*r^3 + eps*r + 4*r^2 + r) + 1
+#sq(t,r,k,eps,cp) = r*((eps + 2)*r + (eps + 1))/(9*k^2*cp^2*t^2) + k*cp*(t-1)/(3*(r+1))
+#mycomp(t,r,k,eps,cp) = ((r+1)*eps + 3*r+1)/(3*k*cp*t) + 2*sqrt(sq)
+### denominator 3*(k*r + k)*cp*t
+den = 3*k*(r+1)*cp*t
+exp1 = eps*r^2 + 2*eps*r + 3*r^2 + eps + 4*r + 1
+exp2 = 3*cp^3*k^3*r*t^3 - 3*cp^3*k^3*r*t^2 + 3*cp^3*k^3*t^3 - 3*cp^3*k^3*t^2 + eps*r^4 + 3*eps*r^3 + 2*r^4 + 3*eps*r^2 + 5*r^3 + eps*r + 4*r^2 + r
+exp1.quo_rem((r+1))
+### ((r+1)*eps + 3*r + 1)/(3*k*cp*t)
+### exp2 is split into a sum
+exp2a = 3*cp^3*k^3*r*t^3 - 3*cp^3*k^3*r*t^2 + 3*cp^3*k^3*t^3 - 3*cp^3*k^3*t^2
+exp2b = eps*r^4 + 3*eps*r^3 + 2*r^4 + 3*eps*r^2 + 5*r^3 + eps*r + 4*r^2 + r
+exp2a/den^2
+### k*cp*(t-1)/(3*(r+1))
+(exp2b/den^2)
+### r*((eps + 2)*r + eps + 1)/((3*k*cp*t)^2)
+
+--------------------------------------------------------------------------------------------------------------------------------
+###Formula for p1 + cV
+
+###The exact formulas are:
+##For cV
+c = (2*r/(eps+1) + 1)^2 - 2*r^2 - 3*r - 1 + eps*(r^2 + r)
+sqr = k*(t-1)*(eps-1)^2*cp^3/(3*(r+1)*(eps+1)^2) + c/(9*k^2*t^2)
+mysol = ((2*r + eps + 1)/(3*k*t*(eps+1)*cp)) + sqrt(sqr)/cp
+
+### For p1 + cV
+term = ((2*r + eps + 1)/(eps +1) - (r+1)*(eps+1))/(3*cp*k*t)
+formulacheck = term + sqrt(sqr)/cp
+
+
+##Alternative for c
+newc = ((eps^3 - 3*eps + 2)*r - (eps-1)^2*r/(r+1))/(eps+1)^2
+c = (r+1)*newc
+
+
+###Derive exact formula for p1 + cV
+P.<k,r,cp,t,eps> = PolynomialRing(QQ)
+R.<cV> = PolynomialRing(P)
+pol = cV^2*cp^2 + (-4*r - 2*eps - 2)/(3*k*t*eps + 3*k*t)*cV*cp + (-k*t*eps^2 + 2*k*t*eps - k*t + k*eps^2 - 2*k*eps + k)/(3*r*eps^2 + 6*r*eps + 3*r + 3*eps^2 + 6*eps + 3)*cp^3 + (-r^2*eps + 2*r^2 - r*eps + 3*r + 1)/(9*k^2*t^2)
+cff = pol.coefficients()
+mycff0cp = - k*(t-1)*(eps-1)^2/(3*(eps+1)^2*(r+1))
+mycff0ind = (2*r^2 + 3*r + 1 - eps*(r^2 + r))/(9*k^2*t^2)
+mycff0 = mycff0cp*cp^3 + mycff0ind
+mycff1 = -2*(2*r+eps+1)*cp/(3*k*t*(eps+1))
+#cff1 is correct
+cff[0]
+cff0cp =  (-k*t*eps^2 + 2*k*t*eps + k*eps^2 - k*t - 2*k*eps + k)/(3*r*eps^2 + 6*r*eps + 3*eps^2 + 3*r + 6*eps + 3)
+cff0ind =  (-r^2*eps + 2*r^2 - r*eps + 3*r + 1)/(9*k^2*t^2)
+#numerator(cff[0] -( cff0ind +cff0cp*cp^3))
+mycff0cp - cff0cp
+## is correct
+mycff0ind - cff0ind
+cff[0] - mycff0
+## is correct
+disc = pol.discriminant()
+expcp3 = -mycff0cp
+c = (2*r/(eps+1) + 1)^2 - 2*r^2 - 3*r - 1 + eps*(r^2 + r)
+mydisc = 4*cp^2*(expcp3*cp^3 + c/(9*k^2*t^2))
+disc - mydisc 
+##disc is correct
+num = numerator(c)
+num.quo_rem((eps-1)*r)
+denominator(c)
+def random_color():
+    l = len(colors)
+    R = Integers(l)
+    s = R.random_element()
+    return sorted(colors)[s]
+c(r) = c
+G = Graphics()
+#for eps0 in srange(0,1, 1/5):
+#    fun(r) = c(eps0)
+#    G += plot(fun, (r,1,20), color = random_color(), legend_label = eps0)
+#G.show()
+for r0 in range(1,12):
+    fun(eps) = c(r0)
+    G += plot(fun, (eps, 0,1), color= random_color(), legend_label = r0)
+#G.show()
+pol(cV) = pol
+#solcV1 = solve(pol, cV,solution_dict = True)[0][cV]
+solcV = (-cff[1] + sqrt(disc))/(2*cff[2])
+##mysol
+c = (2*r/(eps+1) + 1)^2 - 2*r^2 - 3*r - 1 + eps*(r^2 + r)
+sqr = k*(t-1)*(eps-1)^2*cp^3/(3*(r+1)*(eps+1)^2) + c/(9*k^2*t^2)
+mysol = ((2*r + eps + 1)/(3*k*t*(eps+1)*cp)) + sqrt(sqr)/cp
+###my sol is correct
+solcV(r,k,t,eps,cp) = solcV
+mysol(r,k,t,eps,cp) = mysol
+#print(numerator(-cff[1]/(2*cff[2]) - ((2*r + eps + 1)/(3*k*t*(eps+1)*cp))))
+## the first term is correct
+#for r in range(1,12):
+    #for k in range(1,r+1):
+        #for t in range(2,12):
+            #for eps in srange(0,1,1/5):
+                #cp = 3.4893787
+                #print(mysol(r,k,t,eps,cp) - solcV(r,k,t,eps,cp))
+###mysol is correct
+p1 = ((-r*eps - r - eps - 1)/t)/((3*k)*cp)
+myp1 = -(r+1)*(eps+1)/(3*k*t*cp)
+numerator(myp1 -p1)
+###myp1 is correct
+term = ((2*r + eps + 1)/(3*k*t*(eps+1)*cp)) + p1
+myterm = ((2*r + eps + 1)/(eps +1) - (r+1)*(eps+1))/(3*cp*k*t)
+numerator(term-myterm)
+formulacheck = p1 + solcV
+myformulacheck = term + sqrt(sqr)/cp
+fchec(r,k,t,eps,cp) = formulacheck
+myfcheck(r,k,t,eps,cp) = myformulacheck
+for r in range(1,12):
+    for k in range(1,r+1):
+        for t in range(2,12):
+            for eps in srange(0,1,1/5):
+                cp = 3.4893787
+                print(fchec(r,k,t,eps,cp) - myfcheck(r,k,t,eps,cp))
+
 
 ----------------------------------------------------------------------------------------------------------------------------------
 
