@@ -59,14 +59,14 @@ def MNFSAComplexitySmall_at_RKTcp(t,k,r,cp):
     ### check that it is a correct value for the complexity: compute cV and compare with cB
     Cmin = 1e6
     #Return the rest of parameters if needed
-    param = [0,0,0]
+    cont = [0,0,0]
     for (valcA,m) in rootsA:
-        if valcA > 0 and t*valcA < Cmin: ## we compute the rest of parameters, instead of checking if they are all positive and if cB > cV, we plot them at the end
+        if valcA > 0 and t*valcA < Cmin: ## we compute the rest of continuous parameters, instead of checking if they are all positive and if cB > cV, we plot them at the end
             valcB = valcB(valcA)
             valcV = valcV(valcA, valcB) ##it is positive if both cA and cB are positive
             Cmin = t*valcA
-            param = [valcA, valcB, valcV]
-    return (Cmin, param)
+            cont = [valcA, valcB, valcV]
+    return (Cmin, cont)
 
 #MNFSAComplexity_at_RKTcp(1,1,2,2.17827)
 labels = ['small', 'medium', 'large']
@@ -90,8 +90,8 @@ def MNFSAComplexity_at_cp(eps,cp,tmax, rmax, kmax):
             for r in range(k, rmax + 1):
                 compL = compepsL(t,k,r,eps,cp) + max_symbolic(0, fcheck(t,k,r,eps,cp))
                 compM = compepsM(t,k,r,eps,cp)
-                (Siev, param) = MNFSAComplexitySmall_at_RKTcp(t,k,r,cp)
-                compS = max_symbolic(Siev, (1+eps)*param[1])
+                (Siev, cont) = MNFSAComplexitySmall_at_RKTcp(t,k,r,cp)
+                compS = max_symbolic(Siev, (1+eps)*cont[1])
                 ### Minimum with the correct label
                 #print(compS, compM, compL)
                 (C, i) = minim_with_index([compS, compM, compL])
