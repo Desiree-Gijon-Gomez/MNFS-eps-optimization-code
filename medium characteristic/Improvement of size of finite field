@@ -173,14 +173,14 @@ def comparison(ran):
     bits = [2048, 3072]
     lis1 = plot_improvement(ran,bits[0])
     lis2 = plot_improvement(ran,bits[1])
-    print(['2048', lis1[0].n(30)], ['3072', lis2[0].n(30)])
+    print(['2048', lis1[0][1].n(30)], ['3072', lis2[0][1].n(30)])
     return plot(points(lis1, rgbcolor='blue', legend_label=bits[0]) + points(lis2, rgbcolor='black', legend_label=bits[1]))
 
 def comparison_relative(ran):
     bits = [2048, 3072]
     lis1 = plot_improvement_relative(ran,bits[0])
     lis2 = plot_improvement_relative(ran,bits[1])
-    print(['2048', lis1[0].n(30)], ['3072', lis2[0].n(30)])
+    print(['2048', lis1[0][1].n(30)], ['3072', lis2[0][1].n(30)])
     return plot(points(lis1, rgbcolor='blue', legend_label=bits[0]) + points(lis2, rgbcolor='black', legend_label=bits[1]))
 
 a= 0.5
