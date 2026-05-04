@@ -1,0 +1,195 @@
+### Improvement on the size of security
+#Improvement of the size of Q: solve L_Q(1/3, c(1))= L_Q'(1/3, c(eps)) in terms of Q and Q'
+##For both 2058-bits for the size of Q and 3072-bits.
+
+## medium characteristic, improvement of the size of the field with faster MNFS
+def complexity_large_epsilon():
+    ## Minimizing (1+eps)c_B under equality linalg=sieve
+    R.<r,k,eps> = PolynomialRing(QQ)
+    P = R.fraction_field() 
+    M.<cV, ct, cB> = PolynomialRing(P, order='lex')
+    cA = (1+eps)*cB/ct
+    p1 = -cA*(r+1)/(3*k*cB)
+    p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+    ##p1 + p2 + cA*ct - cB + cV with the equation
+    c = numerator(p1 + p2 + eps*cB + cV)
+    eq1 = derivative(c,ct)
+    eq2 = derivative(c,cV)
+    I = ideal([eq1,eq2,c])
+    B = I.groebner_basis()
+    cV, ct, cB, r,k,eps = SR.var('cV, ct, cB, r,k,eps')
+    eqcB(cB) = B[len(B)-1]
+    #is a quadratic equation on cB^3, consider the positive solution and then the third root
+    quadcB= eqcB(cB^(1/3)).full_simplify()
+    cBcub = solve(quadcB, cB, solution_dict=True)[Integer(1)][cB]
+    cB_val = cBcub^(Integer(1)/Integer(3))
+    #linear equation for ct and cV in terms of cB
+    rel_ctcB(ct,cB) = B[len(B) - 2]
+    rel_ctcB(ct) = rel_ctcB(ct,cB_val)
+    ct_val = solve(rel_ctcB, ct, solution_dict=True)[0][ct]
+    rel_cVcB(cV,cB) = B[0]
+    rel_cVcB(cV) = rel_cVcB(cV, cB_val)
+    cV_val = solve(rel_cVcB, cV, solution_dict=True)[0][cV]
+    rels(r,k,eps) = [cB_val, ct_val, cV_val]
+    ###we have already checked that the complexity is minimized for r=k=1
+    minrels = rels(1,1,eps)
+    mincB = minrels[0]
+    minct = minrels[1]
+    mincV = minrels[2]
+    mincA = (1+eps)*mincB/minct
+    CLA = (1+eps)*mincB
+    ### The actual cost of sieving is cA*ct + max(0, p1 + cV)
+    #p1 = -cA*(r+1)/(3*k*cB)
+    minp1 = -mincA*2/(3*1*mincB)
+    CSieve = (1+eps)*mincB + mincV + minp1
+    comp = max_symbolic(CLA,CSieve)
+    return comp
+
+def complexity_small_epsilon():
+    ##Minimizing cA*ct, under p1+cV = 0 ----> Acceptable solutions that do not depend on epsilon anymore
+    R.<r,k,eps> = PolynomialRing(QQ)
+    P = R.fraction_field() 
+    M.<l,ct, cA, cB> = PolynomialRing(P, order='lex')
+    p1 = -cA*(r+1)/(3*k*cB)
+    cV = -p1
+    p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+    ##p1 + p2 + cA*ct - cB + cV with the equation
+    c = numerator(cA*ct + p1 + p2 + cV - cB)
+    L = cA*ct + l*c
+    eq1 = derivative(L,cB)
+    eq2 = derivative(L,cA)
+    eq3 = derivative(L,ct)
+    I = ideal([eq1,eq2,eq3,c])
+    B = I.groebner_basis()
+    ct, cA, cB, r,k,eps = SR.var('ct, cA, cB, r,k,eps')
+    #B[len(B)-1].factor()
+    ### We take the equation of degree six, which is a quadratic equation on cB^3 of the form x^2 -b*x - c. It always have solutions because b^2 - 4(-c)>0 and the smallest solution is b - sqrt(b^2 + 4c) and b < sqrt(b^2 +4c) iff b^2 < b^2 + 4c, 0 <4c, so the only positive solution is the one with the plus sign
+    eqB(cB) = ((81*r^2 + 81*r)*cB^6 + (-225*r^2 - 144*r + 9)*cB^3 - 16)
+    cBcube = solve(eqB(cB^(1/3)), cB, solution_dict=True)[1][cB]
+    cBval = cBcube^(1/3)
+    relcAcB(cB,cA) = B[len(B)-2]
+    eqcA(cA) = relcAcB(cBval, cA)
+    cAval = solve(eqcA,cA,solution_dict=True)[0][cA]
+    relct(ct,cB,cA) = B[len(B)-4]
+    eqct(ct) = relct(ct, cBval, cAval)
+    ctval = solve(eqct,ct,solution_dict=True)[0][ct]
+    rels(r,k) = [cBval, cAval, ctval]
+    ###we have already checked that the complexity is minimized for r=k=1
+    ##Everything is independent of epsilon
+    minrels = rels(1,1)
+    mincB = minrels[0]
+    mincA = minrels[1]
+    minct = minrels[2]
+    comp = max_symbolic(mincA*minct, (1+eps)*mincB)
+    return comp
+
+def complexity_medium_epsilon():
+    ##Minimizing (1+eps)*cB under three constrains: cMC, p1 + cV = 0 and Clinalg=Csieve
+    ## The "middle situation" for épsilon
+    R.<r,k,eps> = PolynomialRing(QQ)
+    P = R.fraction_field() 
+    M.<ct, cB> = PolynomialRing(P, order='lex')
+    ### p1 + cV = 0
+    cA = (1+eps)*cB/ct
+    p1 = -cA*(r+1)/(3*k*cB)
+    cV = -p1
+    p2 = -(cA*r/k + ct*k/(r+1))/(3*(cB - cV))
+    ##p1 + p2 + cA*ct - cB + cV with the equation
+    c = numerator(eps*cB + p2)
+    #L = (1+eps)*cB + l*c
+    #again, derivative of L wrto cB is only used to solve for lambda 
+    #eq1 = derivative(L,cB)
+    eq1 = derivative(c,ct)
+    I = ideal([eq1,c])
+    B = I.groebner_basis()
+    cBcube = -B[len(B)-1].coefficients()[1]
+    #numerator(cBcube).quo_rem(4*(eps + 1))
+    #Another way is to rewrite it cBcube is 4/9*(eps + 1)/eps* (1 + (r/(r+1)) eps^{-1}), so it explodes when eps-> 0
+    ## Change to a symbolic ring so I can take third roots
+    x = SR.var('x')
+    cBcubesymbolic = solve(x - cBcube, x, solution_dict=True)[0][x]
+    valcB = cBcubesymbolic^(1/3)
+    ct, cB, r,k, eps = SR.var('ct,cB,r,k,eps')
+    Bt(ct,cB) = B[0]
+    eqct(ct) = Bt(ct, valcB)
+    valct = solve(eqct, ct, solution_dict=True)[0][ct]
+    ##cB is clearly minimized at r=1
+    rels(r,k,eps)= [valcB, valct]
+    ##Can simply instantialize to r=k=1
+    [mincB, mint] = rels(1,1,eps)
+    comp = (1+eps)*mincB
+    return comp
+
+
+compL(eps) = complexity_large_epsilon()
+compS(eps) = complexity_small_epsilon()
+compM(eps) = complexity_medium_epsilon()
+total_comp(eps) = min_symbolic(compS(eps), compM(eps), compL(eps))
+
+
+Cahora = total_comp(1)
+##Recommended size of security 
+
+ 
+#bitsec = 2048
+
+def find_recomm_size(eps,bitsec):
+    logQsec = bitsec*log(2)
+    ll(const,x) = const*(x^(1/3))*((log(x))^(2/3))
+    Costsec = ll(Cahora, logQsec)
+    Ceps = total_comp(eps)
+    fun(x) = ll(Ceps,x)
+    #plot(fun - Costsec, 1e3, 3e3)
+    x_0 = find_root(fun-Costsec, 1e3,3e3)
+    ## want Q'= 2^(*) so return = log(Q')/log(2)
+    return x_0/log(2)
+
+##This return logQeps for the new cost, to garantee same level of security
+
+### It is more practical to plot the porceptual improvement on logQ and not Q,
+
+## The procentual improvement would be logQeps = (1 + k)logQ, or k = logQeps/logQ - 1
+
+def plot_improvement(ran, bitsec):
+    lis = []
+    for eps in ran:
+        xeps = find_recomm_size(eps,bitsec)
+        #print((eps,xeps))
+        lis += [(eps, xeps)]
+    #return plot(points(lis))
+    return lis
+
+def plot_improvement_relative(ran,bitsec):
+    lis = []
+    for eps in ran:
+        xeps = find_recomm_size(eps, bitsec)
+        keps = (xeps-bitsec)/bitsec
+        print((eps,keps))
+        lis += [(eps, keps)]
+    #return plot(points(lis))
+    return lis
+
+def comparison(ran):
+    bits = [2048, 3072]
+    lis1 = plot_improvement(ran,bits[0])
+    lis2 = plot_improvement(ran,bits[1])
+    print(['2048', lis1[0].n(30)], ['3072', lis2[0].n(30)])
+    return plot(points(lis1, rgbcolor='blue', legend_label=bits[0]) + points(lis2, rgbcolor='black', legend_label=bits[1]))
+
+def comparison_relative(ran):
+    bits = [2048, 3072]
+    lis1 = plot_improvement_relative(ran,bits[0])
+    lis2 = plot_improvement_relative(ran,bits[1])
+    print(['2048', lis1[0].n(30)], ['3072', lis2[0].n(30)])
+    return plot(points(lis1, rgbcolor='blue', legend_label=bits[0]) + points(lis2, rgbcolor='black', legend_label=bits[1]))
+
+a= 0.5
+b = 1.
+num = 150
+delta = (b-a)/num
+ran = srange(0.5,1,delta)
+comparison_relative(ran)
+comparison(ran)
+
+### For maximum improvement 1559.761442596779/log(2) \approx 2250.2600982 and 2342.1657680124845/log(2)) \approx 3379.0309385
+
