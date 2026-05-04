@@ -1,0 +1,187 @@
+###Improvement on the size of the number field
+def complexity_large_epsilon():
+    R.<eps> = PolynomialRing(QQ)
+    P = R.fraction_field() 
+    M.<cV, cd, cB> = PolynomialRing(P, order='lex')
+    ## A^2 = B^(1+eps) --> 2cA = (1+eps)*cB
+    cA = (1+eps)*cB/2
+    p1 = -cd*cA/(3*cB)
+    p2 = -(cd*cA + 1/cd)/(3*(cB-cV))
+    #c = numerator(p1 + p2 +cV + 2*cA- cB)
+    c = numerator(p1 + p2 +cV + eps*cB)
+    eq1 = derivative(c,cd)
+    eq2 = derivative(c,cV)
+    I = ideal([eq1,eq2,c])
+    B = I.groebner_basis()
+    cV, cd, cB,eps = SR.var('cV, cd, cB,eps')
+    eqcB(cB) = B[len(B)-1]
+    ##Is a quadratic equation on cB^3
+    eqcube(cB) = eqcB(cB^(1/3))
+    sols = solve(eqcube, cB, solution_dict=True)
+    sol1(eps) = sols[0][cB]
+    sol2(eps) = sols[1][cB]
+    #plot([sol1, sol2], (eps, 0,1), legend_label = ['sol1', 'sol2'])
+    #Check sol1 too
+    #plot(sol1, (eps, 0,1))
+    #Hence is sol2
+    val_cB = sol2^(1/3)
+    ## for the extension theorem, need linear equations for cd, and check that B[len(B)-2] is linear in cv
+    relcd(cd, cB) = B[len(B)-2]
+    eqcd(cd) = relcd(cd, val_cB)
+    val_cd = solve(eqcd, cd, solution_dict=True)[0][cd]
+    relV(cV, cd, cB) = B[0]
+    eqV(cV) = relV(cV, val_cd, val_cB)
+    val_cV = solve(eqV, cV, solution_dict=True)[0][cV]
+    #param(eps) = [val_cB, val_cd, val_cV]
+    comp = (1+eps)*val_cB
+    ###check with p1
+    ###cA = (1+eps)*cB/2
+    ###p1 = -cd*cA/(3*cB)
+    ## As before, this is the strategy for large epsilon
+    cA(cB) = cA
+    val_cA = cA(val_cB)
+    p1(cd) = p1
+    val_p1 = p1(val_cd)
+    check(eps) = val_p1 + val_cV
+    #plot(check, (eps,0,1))
+    eps_valid = find_root(check, 0.7, 0.9)
+    ##To check that all solutions are positive and cB > cV
+    #plot([(1+eps)*rels[0], rels[0], rels[1], rels[2]], (eps, 0,1), legend_label=['comp', 'cB', 'cd', 'cV'])
+    ##Return all the data to plot more eficiently
+    return [comp, check, eps_valid]
+
+def complexity_small_epsilon():
+    R.<eps> = PolynomialRing(QQ)
+    P = R.fraction_field() 
+    M.<cd, cA, cB> = PolynomialRing(P, order='lex')
+    #cA = (1+eps)*cB/2
+    p1 = -cd*cA/(3*cB)
+    cV = -p1
+    p2 = -(cd*cA + 1/cd)/(3*(cB-cV))
+    c = numerator(p1 + p2 +cV + 2*cA- cB)
+    #c = numerator(p1 + p2 +cV + eps*cB)
+    #L = 2*cA + lc, the derivative wrt cA is only used for solving for lambda
+    eq1 = derivative(c,cB)
+    eq2 = derivative(c,cd)
+    I = ideal([eq1,eq2,c])
+    B = I.groebner_basis()
+    cd, cA, cB,eps = SR.var('cd, cA, cB,eps')
+    eqB(cB) = B[len(B)-1]
+    val_cB = solve(eqB, cB, solution_dict=True)[2][cB]
+    relcAcB(cA,cB) = B[len(B)-2]
+    eqcA(cA) = relcAcB(cA, val_cB)
+    val_cA = solve(eqcA, cA, solution_dict=True)[0][cA]
+    relcdcB(cd,cB) = B[0]
+    eqcd(cd) = relcdcB(cd, val_cB)
+    val_cd = solve(eqcd, cd, solution_dict=True)[0][cd]
+    sols = [val_cB, val_cA, val_cd]
+    CSieve = 2*val_cA
+    CLinAlg = (1+eps)*val_cB
+    #plot([CSieve, CLinAlg], (eps, 0,1))
+    ##Solve (1+eps)cB= 2cA
+    eps_valid = 2*val_cA/val_cB - 1
+    #valid_eps is 2/3
+    #comp(eps) = max_symbolic(CSieve, CLinAlg)
+    ## More efficient to determine the intervals ourselves
+    return [CSieve, CLinAlg, eps_valid]
+
+def complexity_medium_epsilon():
+    R.<eps> = PolynomialRing(QQ)
+    P = R.fraction_field() 
+    M.<cd, cB> = PolynomialRing(P, order='lex')
+    cA = (1+eps)*cB/2
+    p1 = -cd*cA/(3*cB)
+    cV = -p1
+    p2 = -(cd*cA + 1/cd)/(3*(cB-cV))
+    #c = numerator(p1 + p2 +cV + 2*cA- cB)
+    c = numerator(p2 + eps*cB)
+    #L = (1+eps)*cB + lc, the derivative wrt cB is only used for solving for lambda
+    eq1 = derivative(c,cd)
+    I = ideal([eq1,c])
+    B = I.groebner_basis()
+    cd, cB,eps = SR.var('cd, cB,eps')
+    relB(cB) = B[len(B)-1]
+    ##cubic quation on cB
+    val_cB = solve(relB, cB, solution_dict=True)[2][cB]
+    relcd(cd,cB) = B[0]
+    eqcd(cd) = relcd(cd, val_cB)
+    val_cd = solve(eqcd, cd, solution_dict=True)[0][cd]
+    comp = (1+eps)*val_cB
+    ## Rest of the parameters if needed
+    #cA(cB) =cA
+    #val_cA = cA(val_cB)
+    #cV(cd, cA, cB) = cV
+    #val_cV = cV(val_cd, val_cA, val_cB)
+    #param(eps) = [comp, val_cB, val_cd, val_cA, val_cV]
+    #plot([comp, val_cB, val_cd, val_cA, val_cV], (eps, 0.2, 0.8), legend_label=['comp', 'cB', 'cd', 'cA', 'cV'])
+    return comp
+
+#To plot all complexities together
+[compL, check, epsML] = complexity_large_epsilon()
+#CompL = piecewise([((0,epsML), comp + check), ([epsML, 1], comp)])
+#plot(CompL, (eps, 0,1))
+[CSieve, CLinAlg, epsSM] = complexity_small_epsilon()
+#CompS(eps) = piecewise([((0,epsSM), CSieve), ([epsSM, 1], CLinAlg)])
+#plot(CompS, (eps, 0,1))
+compM(eps) = complexity_medium_epsilon()
+#plot(compM, (eps, epsSM, epsML))
+comp_total = piecewise([([0,epsSM], CSieve), ((epsSM, epsML), compM), ([epsML, 1], compL)])
+
+
+Cahora = compL(1)
+##Recommended size of security 
+
+#bitsec = 2048
+
+def find_recomm_size(eps,bitsec):
+    logQsec = bitsec*log(2)
+    ll(const,x) = const*(x^(1/3))*((log(x))^(2/3))
+    Costsec = ll(Cahora, logQsec)
+    Ceps = comp_total(eps)
+    fun(x) = ll(Ceps,x)
+    #plot(fun - Costsec, 1e2, 3e3)
+    x_0 = find_root(fun-Costsec, 1e2,3e3)
+    ## want Q'= > 2^(*) so return = log(Q')/log(2)
+    return x_0/log(2)
+
+##This return logQeps for the new cost, to garantee same level of security
+##In terms of porcentual improvement, if Qeps = kQ, then log(k) = log(Qeps)- log(Q), and want 100k
+##actually want 100*(k-1)
+def plot_improvement(ran, bitsec):
+    lis = []
+    for eps in ran:
+        xeps = find_recomm_size(eps,bitsec)
+        #print((eps,xeps))
+        lis += [(eps, xeps)]
+    #return plot(points(lis))
+    return lis
+
+def plot_improvement_relative(ran,bitsec):
+    lis = []
+    for eps in ran:
+        xeps = find_recomm_size(eps, bitsec)
+        keps = (xeps-bitsec)/bitsec
+        #print((eps,keps))
+        lis += [(eps, keps)]
+    #return plot(points(lis))
+    return lis
+
+def comparison(ran):
+    bits = [2048, 3072]
+    lis1 = plot_improvement(ran,bits[0])
+    lis2 = plot_improvement(ran,bits[1])
+    print(['2048', lis1[0][1].n(30)], ['3072', lis2[0][1].n(30)])
+    return plot(points(lis1, rgbcolor='blue', legend_label=bits[0]) + points(lis2, rgbcolor='black', legend_label=bits[1]))
+
+def comparison_relative(ran):
+    bits = [2048, 3072]
+    lis1 = plot_improvement_relative(ran,bits[0])
+    lis2 = plot_improvement_relative(ran,bits[1])
+    print(['2048', lis1[0][1].n(30)], ['3072', lis2[0][1].n(30)])
+    return plot(points(lis1, rgbcolor='blue', legend_label=bits[0]) + points(lis2, rgbcolor='black', legend_label=bits[1]))
+
+ran = srange(0.6,1,0.005)
+comparison_relative(ran)
+
+### maximum improvement is 2159.4754 and 3241.1875
+### in the relative 0.054431362 and 0.055074060 
