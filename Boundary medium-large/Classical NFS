@@ -1,0 +1,31 @@
+### classical NFS cV = 0
+### Minimizing (1+eps)*cB ----> No acceptable solutions
+R.<r,k, t,eps, cp> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cA,cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cA*(r+1)/(3*k*cB*cp)
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*cB)
+c = numerator(p1 + p2 + t*cA - cB)
+### L  = (1+eps)*cB + lamdda*c, the derivative with respect to cB is only used to solve 
+eq1 = derivative(c, cA)
+I = ideal([c,eq1])
+B = I.groebner_basis()
+B
+
+----------------------------------------------------------------
+### classical NFS cV = 0
+### Minimizing t*cA ----> Returns solutions
+R.<r,k, t,eps,cp> = PolynomialRing(QQ)
+P = R.fraction_field() 
+M.<cA, cB> = PolynomialRing(P, order='lex')
+#cA = (1+eps)*cB/t
+p1 = -cA*(r+1)/(3*k*cB*cp)
+p2 = -(cA*r/(k*cp) + (t-1)*k*cp/(r+1))/(3*cB)
+c = numerator(p1 + p2 + t*cA - cB)
+### L  = t*cA + lamdda*c, the derivative with respect to cA is only used to solve for lambda
+eq1 = derivative(c, cB)
+I = ideal([c,eq1])
+B = I.groebner_basis()
+B
+### From B[0] ---> t*cA  = 2*cB, so we have equality Sieving and Linear Algebra for eps=1, and any other eps, Sieving dominates
