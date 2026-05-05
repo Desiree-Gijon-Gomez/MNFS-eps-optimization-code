@@ -419,6 +419,14 @@ I = ideal([eq1, eq2, eq3, eq4,c1, c2])
 B = I.groebner_basis()
 len(B)
 
+TODO: Study the previous one more carefully
+Missing: 3 more systems
+(p1 + cV=0) Minimize t*cA, 
+(p1 + cV=0) ((1+eps)*(cBp + cV) = t*cA) Minimice t*cA
+
+(p1 + cV > 0) the other two are checked already
+((1+eps)*(cBp + cV) = t*cA + p1 + cV) Minimize  t*cA + p1 + cV
+
 
 
 
