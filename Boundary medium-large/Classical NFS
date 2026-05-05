@@ -29,3 +29,4 @@ I = ideal([c,eq1])
 B = I.groebner_basis()
 B
 ### From B[0] ---> t*cA  = 2*cB, so we have equality Sieving and Linear Algebra for eps=1, and any other eps, Sieving dominates
+
