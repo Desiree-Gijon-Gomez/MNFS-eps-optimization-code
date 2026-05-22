@@ -71,7 +71,11 @@ def plot_check_constrains():
     cV_val = rels_eval[2]
     cA_val = (1+eps)*cB_val/ct_val
     p1_eval = -cA_val*2/(3*cB_val)
-    return plot(cV_val + p1_eval, (eps, 0,1))
+    G1 = plot([(1+eps)*cB_val, cB_val, cV_val, ct_val], (eps, 0,1), legend_label=['Complexity: (1+eps)*cB', 'cB', 'cV', 'ct'])
+    G1.show()
+    G2= plot(cV_val + p1_eval, (eps, 0,1))
+    G2.show()
+    return 
 plot_check_constrains() 
 
 def compute_eps(r,k):
